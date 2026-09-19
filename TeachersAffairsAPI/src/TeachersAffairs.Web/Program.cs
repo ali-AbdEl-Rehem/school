@@ -7,6 +7,16 @@ using TeachersAffairs.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// CORS for School.UI dashboard
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("SchoolUI", policy =>
+        policy.WithOrigins("https://localhost:7227", "http://localhost:5138")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials());
+});
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
@@ -27,6 +37,8 @@ builder.Services.AddScoped<ITeacherApi, ServerTeacherApi>();
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
+
+app.UseCors("SchoolUI");
 
 app.UseExceptionHandler(new ExceptionHandlerOptions { ExceptionHandlingPath = "/Error" });
 

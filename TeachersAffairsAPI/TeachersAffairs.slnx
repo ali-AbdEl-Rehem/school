@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TeachersAffairs.Application/TeachersAffairs.Application.csproj" />
+    <Project Path="src/TeachersAffairs.Domain/TeachersAffairs.Domain.csproj" />
+    <Project Path="src/TeachersAffairs.Infrastructure/TeachersAffairs.Infrastructure.csproj" />
+    <Project Path="src/TeachersAffairs.Shared/TeachersAffairs.Shared.csproj" />
+    <Project Path="src/TeachersAffairs.Web.Client/TeachersAffairs.Web.Client.csproj" />
+    <Project Path="src/TeachersAffairs.Web/TeachersAffairs.Web.csproj" />
+  </Folder>
+</Solution>

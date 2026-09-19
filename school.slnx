@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/School.UI/" />
+  <Folder Name="/School.UI/src/">
+    <Project Path="School.UI/src/School.UI.Client/School.UI.Client.csproj" />
+  </Folder>
   <Folder Name="/StudentsAffairsAPI/" />
   <Folder Name="/StudentsAffairsAPI/src/">
     <Project Path="StudentsAffairsAPI/src/StudentsAffairs.Application/StudentsAffairs.Application.csproj" />

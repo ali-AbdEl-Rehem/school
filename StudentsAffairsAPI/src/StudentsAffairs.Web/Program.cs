@@ -7,6 +7,16 @@ using StudentsAffairs.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// CORS for School.UI dashboard
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("SchoolUI", policy =>
+        policy.WithOrigins("https://localhost:7227", "http://localhost:5138")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials());
+});
+
 // ---- Presentation ----
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
@@ -14,7 +24,6 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddControllers(options =>
 {
-    // API actions: map Application exceptions -> ProblemDetails.
     options.Filters.Add<ApiExceptionFilter>();
 });
 builder.Services.AddEndpointsApiExplorer();
@@ -25,8 +34,6 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// When a component renders on the server, talk to the Application layer directly (no HTTP hop).
-// The WebAssembly client project registers its own HttpClient-based IStudentApi.
 builder.Services.AddScoped<IStudentApi, ServerStudentApi>();
 
 // ---- Cross-cutting ----
@@ -35,7 +42,8 @@ builder.Services.AddProblemDetails();
 var app = builder.Build();
 
 // ---- Pipeline ----
-// Non-API (Blazor) unhandled errors -> /Error page. API errors are handled by ApiExceptionFilter.
+app.UseCors("SchoolUI");
+
 app.UseExceptionHandler(new ExceptionHandlerOptions { ExceptionHandlingPath = "/Error" });
 
 if (app.Environment.IsDevelopment())
@@ -61,7 +69,6 @@ app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(StudentsAffairs.Web.Client._Imports).Assembly);
 
-// Apply migrations and seed demo data on startup so the app is usable on first run.
 await DbSeeder.MigrateAndSeedAsync(app.Services);
 
 app.Run();
