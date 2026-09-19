@@ -1,0 +1,232 @@
+@page "/teachers"
+@implements IDisposable
+@inject ITeacherApi Api
+@inject NavigationManager Nav
+
+<PageTitle>Teachers</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Teachers</h1>
+    <a class="btn btn-primary" href="/teachers/create">
+        <span class="bi bi-plus-lg" aria-hidden="true"></span> New teacher
+    </a>
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col-sm-5">
+        <input class="form-control" placeholder="Search name, e-mail or number..."
+               value="@_query.Search" @oninput="OnSearchInput" />
+    </div>
+    <div class="col-sm-4">
+        <select class="form-select" @onchange="OnDepartmentChanged">
+            <option value="">All departments</option>
+            @foreach (var d in _departments)
+            {
+                <option value="@d" selected="@(d == _query.Department)">@d</option>
+            }
+        </select>
+    </div>
+    <div class="col-sm-3">
+        <select class="form-select" @onchange="OnStatusChanged">
+            <option value="">Any status</option>
+            <option value="true" selected="@(_query.IsActive == true)">Active only</option>
+            <option value="false" selected="@(_query.IsActive == false)">Inactive only</option>
+        </select>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (_page.TotalCount == 0)
+{
+    <div class="alert alert-info">No teachers match the current filter.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th role="button" @onclick='() => Sort("name")'>Name @SortIcon("name")</th>
+                    <th role="button" @onclick='() => Sort("employeeNumber")'>Employee # @SortIcon("employeeNumber")</th>
+                    <th>Email</th>
+                    <th role="button" @onclick='() => Sort("department")'>Department @SortIcon("department")</th>
+                    <th>Level</th>
+                    <th role="button" class="text-end" @onclick='() => Sort("salary")'>Salary @SortIcon("salary")</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in _page.Items)
+                {
+                    <tr>
+                        <td>@t.FullName</td>
+                        <td><code>@t.EmployeeNumber</code></td>
+                        <td>@t.Email</td>
+                        <td>@t.Department</td>
+                        <td>@t.Level</td>
+                        <td class="text-end">@t.Salary.ToString("C0")</td>
+                        <td class="text-center">
+                            <span class="badge @(t.IsActive ? "text-bg-success" : "text-bg-secondary")">
+                                @(t.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-secondary" href="@($"/teachers/{t.Id}")">View</a>
+                            <a class="btn btn-sm btn-outline-primary" href="@($"/teachers/{t.Id}/edit")">Edit</a>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => AskDelete(t)">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+            @($"Showing {(_page.Page - 1) * _page.PageSize + 1}–{Math.Min(_page.Page * _page.PageSize, _page.TotalCount)} of {_page.TotalCount}")
+        </small>
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary" disabled="@(!_page.HasPrevious)" @onclick="() => GoToPage(_page.Page - 1)">Previous</button>
+            <button class="btn btn-outline-secondary" disabled>@_page.Page / @Math.Max(_page.TotalPages, 1)</button>
+            <button class="btn btn-outline-secondary" disabled="@(!_page.HasNext)" @onclick="() => GoToPage(_page.Page + 1)">Next</button>
+        </div>
+    </div>
+}
+
+@if (_pendingDelete is not null)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background:rgba(0,0,0,.4)">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete teacher</h5>
+                    <button type="button" class="btn-close" @onclick="() => _pendingDelete = null"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Delete <strong>@_pendingDelete.FullName</strong> (@_pendingDelete.EmployeeNumber)? This cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary" @onclick="() => _pendingDelete = null">Cancel</button>
+                    <button class="btn btn-danger" @onclick="ConfirmDeleteAsync" disabled="@_deleting">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private readonly TeacherQuery _query = new() { Page = 1, PageSize = 10, SortBy = "name" };
+    private PagedResult<TeacherDto> _page = new();
+    private IReadOnlyList<string> _departments = [];
+    private bool _loading = true;
+    private bool _deleting;
+    private TeacherDto? _pendingDelete;
+    private CancellationTokenSource? _debounceCts;
+    private int _loadTicket;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _departments = await Api.GetDepartmentsAsync();
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        var ticket = ++_loadTicket;
+        _loading = true;
+        var result = await Api.GetPagedAsync(_query);
+
+        if (ticket != _loadTicket)
+            return;
+
+        _page = result;
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        _query.Search = e.Value?.ToString();
+        _query.Page = 1;
+
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(350, token);
+                await InvokeAsync(ReloadAsync);
+            }
+            catch (TaskCanceledException) { }
+        });
+    }
+
+    private async Task OnDepartmentChanged(ChangeEventArgs e)
+    {
+        _query.Department = string.IsNullOrEmpty(e.Value?.ToString()) ? null : e.Value!.ToString();
+        _query.Page = 1;
+        await ReloadAsync();
+    }
+
+    private async Task OnStatusChanged(ChangeEventArgs e)
+    {
+        _query.IsActive = e.Value?.ToString() switch { "true" => true, "false" => false, _ => null };
+        _query.Page = 1;
+        await ReloadAsync();
+    }
+
+    private async Task Sort(string column)
+    {
+        if (_query.SortBy == column)
+            _query.SortDescending = !_query.SortDescending;
+        else
+        {
+            _query.SortBy = column;
+            _query.SortDescending = false;
+        }
+        await ReloadAsync();
+    }
+
+    private MarkupString SortIcon(string column)
+        => _query.SortBy == column
+            ? (MarkupString)(_query.SortDescending ? "&#9662;" : "&#9652;")
+            : (MarkupString)"";
+
+    private async Task GoToPage(int page)
+    {
+        _query.Page = page;
+        await ReloadAsync();
+    }
+
+    private void AskDelete(TeacherDto t) => _pendingDelete = t;
+
+    private async Task ConfirmDeleteAsync()
+    {
+        if (_pendingDelete is null) return;
+        _deleting = true;
+        try
+        {
+            await Api.DeleteAsync(_pendingDelete.Id);
+            _pendingDelete = null;
+            await ReloadAsync();
+        }
+        finally
+        {
+            _deleting = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+    }
+}

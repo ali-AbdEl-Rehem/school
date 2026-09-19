@@ -1,0 +1,43 @@
+@page "/teachers/create"
+@inject ITeacherApi Api
+@inject NavigationManager Nav
+
+<PageTitle>New teacher</PageTitle>
+
+<h1 class="mb-3">New teacher</h1>
+
+<TeacherEditor Model="_model"
+               Departments="_departments"
+               SubmitLabel="Create teacher"
+               Busy="_busy"
+               ErrorMessage="@_error"
+               OnValidSubmit="SubmitAsync" />
+
+@code {
+    private readonly TeacherFormModel _model = new();
+    private IReadOnlyList<string> _departments = [];
+    private bool _busy;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+        => _departments = await Api.GetDepartmentsAsync();
+
+    private async Task SubmitAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            var created = await Api.CreateAsync(_model.ToCreateDto());
+            Nav.NavigateTo($"/teachers/{created.Id}");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

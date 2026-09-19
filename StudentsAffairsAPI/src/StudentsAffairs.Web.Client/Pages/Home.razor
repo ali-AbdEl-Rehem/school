@@ -1,0 +1,41 @@
+﻿@page "/"
+
+<PageTitle>Students Affairs</PageTitle>
+
+<h1>Students Affairs</h1>
+
+<p class="lead">
+    A sample Blazor Web App (.NET 10, Interactive Auto) built on an n-tier architecture
+    with the Unit of Work and Repository patterns over EF Core / SQL Server.
+</p>
+
+<div class="row g-3 mt-2">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Manage students</h5>
+                <p class="card-text">Browse, search, sort and page the student register; create, edit and delete records.</p>
+                <a class="btn btn-primary" href="/students">Open student list</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">REST API</h5>
+                <p class="card-text">The same use cases are exposed under <code>/api/students</code> and documented with Swagger.</p>
+                <a class="btn btn-outline-secondary" href="/swagger" target="_blank">Open Swagger UI</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="mt-4 h4">Solution layout</h2>
+<ul>
+    <li><strong>StudentsAffairs.Domain</strong> — entities &amp; enums (no dependencies).</li>
+    <li><strong>StudentsAffairs.Shared</strong> — DTOs &amp; the <code>IStudentApi</code> contract shared with the WASM client.</li>
+    <li><strong>StudentsAffairs.Application</strong> — service layer, repository/unit-of-work interfaces, mapping.</li>
+    <li><strong>StudentsAffairs.Infrastructure</strong> — EF Core <code>DbContext</code>, repositories, <code>UnitOfWork</code>, migrations.</li>
+    <li><strong>StudentsAffairs.Web</strong> — Blazor host, API controllers, composition root.</li>
+    <li><strong>StudentsAffairs.Web.Client</strong> — Blazor WebAssembly UI (pages, forms, HTTP client).</li>
+</ul>

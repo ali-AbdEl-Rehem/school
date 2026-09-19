@@ -1,0 +1,120 @@
+@* Reusable student form used by both the Create and Edit pages. *@
+
+<EditForm Model="Model" OnValidSubmit="HandleValidSubmitAsync">
+    <DataAnnotationsValidator />
+
+    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">@ErrorMessage</div>
+    }
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">First name</label>
+            <InputText class="form-control" @bind-Value="Model.FirstName" />
+            <ValidationMessage For="() => Model.FirstName" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Last name</label>
+            <InputText class="form-control" @bind-Value="Model.LastName" />
+            <ValidationMessage For="() => Model.LastName" />
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Student number</label>
+            <InputText class="form-control" @bind-Value="Model.StudentNumber" disabled="@IsEdit" />
+            <ValidationMessage For="() => Model.StudentNumber" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">National ID</label>
+            <InputText class="form-control" @bind-Value="Model.NationalId" disabled="@IsEdit" />
+            <ValidationMessage For="() => Model.NationalId" />
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <InputText type="email" class="form-control" @bind-Value="Model.Email" />
+            <ValidationMessage For="() => Model.Email" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Phone number</label>
+            <InputText class="form-control" @bind-Value="Model.PhoneNumber" />
+            <ValidationMessage For="() => Model.PhoneNumber" />
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Date of birth</label>
+            <InputDate class="form-control" @bind-Value="Model.DateOfBirth" />
+            <ValidationMessage For="() => Model.DateOfBirth" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Gender</label>
+            <InputSelect class="form-select" @bind-Value="Model.Gender">
+                <option value="@Gender.Unspecified">-- select --</option>
+                <option value="@Gender.Male">Male</option>
+                <option value="@Gender.Female">Female</option>
+            </InputSelect>
+            <ValidationMessage For="() => Model.Gender" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Academic level</label>
+            <InputSelect class="form-select" @bind-Value="Model.Level">
+                @foreach (var level in Enum.GetValues<AcademicLevel>())
+                {
+                    <option value="@level">@level</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="() => Model.Level" />
+        </div>
+
+        <div class="col-md-5">
+            <label class="form-label">Department</label>
+            <InputText class="form-control" list="department-options" @bind-Value="Model.Department" />
+            <datalist id="department-options">
+                @foreach (var d in Departments)
+                {
+                    <option value="@d" />
+                }
+            </datalist>
+            <ValidationMessage For="() => Model.Department" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">GPA</label>
+            <InputNumber class="form-control" step="0.01" @bind-Value="Model.Gpa" />
+            <ValidationMessage For="() => Model.Gpa" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Enrollment date</label>
+            <InputDate class="form-control" @bind-Value="Model.EnrollmentDate" />
+            <ValidationMessage For="() => Model.EnrollmentDate" />
+        </div>
+
+        <div class="col-12 form-check ms-2">
+            <InputCheckbox class="form-check-input" id="isActive" @bind-Value="Model.IsActive" />
+            <label class="form-check-label" for="isActive">Active student</label>
+        </div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary" disabled="@Busy">
+            @if (Busy)
+            {
+                <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+            }
+            @SubmitLabel
+        </button>
+        <a class="btn btn-outline-secondary" href="/students">Cancel</a>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired] public StudentFormModel Model { get; set; } = default!;
+    [Parameter] public bool IsEdit { get; set; }
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public string SubmitLabel { get; set; } = "Save";
+    [Parameter] public string? ErrorMessage { get; set; }
+    [Parameter] public IReadOnlyList<string> Departments { get; set; } = [];
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+
+    private Task HandleValidSubmitAsync() => OnValidSubmit.InvokeAsync();
+}

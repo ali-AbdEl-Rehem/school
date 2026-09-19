@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/StudentsAffairsAPI/" />
+  <Folder Name="/StudentsAffairsAPI/src/">
+    <Project Path="StudentsAffairsAPI/src/StudentsAffairs.Application/StudentsAffairs.Application.csproj" />
+    <Project Path="StudentsAffairsAPI/src/StudentsAffairs.Domain/StudentsAffairs.Domain.csproj" />
+    <Project Path="StudentsAffairsAPI/src/StudentsAffairs.Infrastructure/StudentsAffairs.Infrastructure.csproj" />
+    <Project Path="StudentsAffairsAPI/src/StudentsAffairs.Shared/StudentsAffairs.Shared.csproj" />
+    <Project Path="StudentsAffairsAPI/src/StudentsAffairs.Web.Client/StudentsAffairs.Web.Client.csproj" />
+    <Project Path="StudentsAffairsAPI/src/StudentsAffairs.Web/StudentsAffairs.Web.csproj" />
+  </Folder>
+  <Folder Name="/TeachersAffairsAPI/" />
+  <Folder Name="/TeachersAffairsAPI/src/">
+    <Project Path="TeachersAffairsAPI/src/TeachersAffairs.Application/TeachersAffairs.Application.csproj" />
+    <Project Path="TeachersAffairsAPI/src/TeachersAffairs.Domain/TeachersAffairs.Domain.csproj" />
+    <Project Path="TeachersAffairsAPI/src/TeachersAffairs.Infrastructure/TeachersAffairs.Infrastructure.csproj" />
+    <Project Path="TeachersAffairsAPI/src/TeachersAffairs.Shared/TeachersAffairs.Shared.csproj" />
+    <Project Path="TeachersAffairsAPI/src/TeachersAffairs.Web.Client/TeachersAffairs.Web.Client.csproj" />
+    <Project Path="TeachersAffairsAPI/src/TeachersAffairs.Web/TeachersAffairs.Web.csproj" />
+  </Folder>
+</Solution>

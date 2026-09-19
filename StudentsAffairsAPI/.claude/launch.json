@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/StudentsAffairs.Web/StudentsAffairs.Web.csproj", "--no-launch-profile", "--urls", "http://localhost:5135"],
+      "port": 5135
+    }
+  ]
+}

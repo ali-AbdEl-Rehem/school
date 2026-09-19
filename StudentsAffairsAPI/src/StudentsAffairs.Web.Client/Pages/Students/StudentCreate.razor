@@ -1,0 +1,43 @@
+@page "/students/create"
+@inject IStudentApi Api
+@inject NavigationManager Nav
+
+<PageTitle>New student</PageTitle>
+
+<h1 class="mb-3">New student</h1>
+
+<StudentEditor Model="_model"
+               Departments="_departments"
+               SubmitLabel="Create student"
+               Busy="_busy"
+               ErrorMessage="@_error"
+               OnValidSubmit="SubmitAsync" />
+
+@code {
+    private readonly StudentFormModel _model = new();
+    private IReadOnlyList<string> _departments = [];
+    private bool _busy;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+        => _departments = await Api.GetDepartmentsAsync();
+
+    private async Task SubmitAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            var created = await Api.CreateAsync(_model.ToCreateDto());
+            Nav.NavigateTo($"/students/{created.Id}");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

@@ -1,0 +1,60 @@
+@page "/teachers/{Id:int}"
+@inject ITeacherApi Api
+@inject NavigationManager Nav
+
+<PageTitle>Teacher details</PageTitle>
+
+@if (_loading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (_teacher is null)
+{
+    <div class="alert alert-warning">Teacher #@Id was not found.</div>
+    <a class="btn btn-outline-secondary" href="/teachers">Back to list</a>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">@_teacher.FullName</h1>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary" href="@($"/teachers/{_teacher.Id}/edit")">Edit</a>
+            <a class="btn btn-outline-secondary" href="/teachers">Back</a>
+        </div>
+    </div>
+
+    <dl class="row">
+        <dt class="col-sm-3">Employee number</dt><dd class="col-sm-9"><code>@_teacher.EmployeeNumber</code></dd>
+        <dt class="col-sm-3">National ID</dt><dd class="col-sm-9">@_teacher.NationalId</dd>
+        <dt class="col-sm-3">Email</dt><dd class="col-sm-9">@_teacher.Email</dd>
+        <dt class="col-sm-3">Phone</dt><dd class="col-sm-9">@(_teacher.PhoneNumber ?? "—")</dd>
+        <dt class="col-sm-3">Date of birth</dt><dd class="col-sm-9">@_teacher.DateOfBirth.ToString("yyyy-MM-dd")</dd>
+        <dt class="col-sm-3">Gender</dt><dd class="col-sm-9">@_teacher.Gender</dd>
+        <dt class="col-sm-3">Level</dt><dd class="col-sm-9">@_teacher.Level</dd>
+        <dt class="col-sm-3">Department</dt><dd class="col-sm-9">@_teacher.Department</dd>
+        <dt class="col-sm-3">Salary</dt><dd class="col-sm-9">@_teacher.Salary.ToString("C0")</dd>
+        <dt class="col-sm-3">Hire date</dt><dd class="col-sm-9">@_teacher.HireDate.ToString("yyyy-MM-dd")</dd>
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">
+            <span class="badge @(_teacher.IsActive ? "text-bg-success" : "text-bg-secondary")">
+                @(_teacher.IsActive ? "Active" : "Inactive")
+            </span>
+        </dd>
+        <dt class="col-sm-3">Created</dt><dd class="col-sm-9">@_teacher.CreatedAtUtc.ToString("u")</dd>
+        <dt class="col-sm-3">Last updated</dt><dd class="col-sm-9">@(_teacher.UpdatedAtUtc?.ToString("u") ?? "—")</dd>
+    </dl>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private TeacherDto? _teacher;
+    private bool _loading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _teacher = await Api.GetByIdAsync(Id);
+        _loading = false;
+    }
+}

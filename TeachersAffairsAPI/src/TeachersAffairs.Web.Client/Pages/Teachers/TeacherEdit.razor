@@ -1,0 +1,69 @@
+@page "/teachers/{Id:int}/edit"
+@inject ITeacherApi Api
+@inject NavigationManager Nav
+
+<PageTitle>Edit teacher</PageTitle>
+
+@if (_loading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (_model is null)
+{
+    <div class="alert alert-warning">Teacher #@Id was not found.</div>
+    <a class="btn btn-outline-secondary" href="/teachers">Back to list</a>
+}
+else
+{
+    <h1 class="mb-3">Edit @_model.FirstName @_model.LastName</h1>
+
+    <TeacherEditor Model="_model"
+                   IsEdit="true"
+                   Departments="_departments"
+                   SubmitLabel="Save changes"
+                   Busy="_busy"
+                   ErrorMessage="@_error"
+                   OnValidSubmit="SubmitAsync" />
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private TeacherFormModel? _model;
+    private IReadOnlyList<string> _departments = [];
+    private bool _loading = true;
+    private bool _busy;
+    private string? _error;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _departments = await Api.GetDepartmentsAsync();
+        var dto = await Api.GetByIdAsync(Id);
+        _model = dto is null ? null : TeacherFormModel.FromDto(dto);
+        _loading = false;
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_model is null) return;
+        _busy = true;
+        _error = null;
+        try
+        {
+            var updated = await Api.UpdateAsync(Id, _model.ToUpdateDto());
+            if (updated is null)
+                _error = "The teacher no longer exists.";
+            else
+                Nav.NavigateTo($"/teachers/{Id}");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

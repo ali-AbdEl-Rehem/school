@@ -1,0 +1,60 @@
+@page "/students/{Id:int}"
+@inject IStudentApi Api
+@inject NavigationManager Nav
+
+<PageTitle>Student details</PageTitle>
+
+@if (_loading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (_student is null)
+{
+    <div class="alert alert-warning">Student #@Id was not found.</div>
+    <a class="btn btn-outline-secondary" href="/students">Back to list</a>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">@_student.FullName</h1>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary" href="@($"/students/{_student.Id}/edit")">Edit</a>
+            <a class="btn btn-outline-secondary" href="/students">Back</a>
+        </div>
+    </div>
+
+    <dl class="row">
+        <dt class="col-sm-3">Student number</dt><dd class="col-sm-9"><code>@_student.StudentNumber</code></dd>
+        <dt class="col-sm-3">National ID</dt><dd class="col-sm-9">@_student.NationalId</dd>
+        <dt class="col-sm-3">Email</dt><dd class="col-sm-9">@_student.Email</dd>
+        <dt class="col-sm-3">Phone</dt><dd class="col-sm-9">@(_student.PhoneNumber ?? "—")</dd>
+        <dt class="col-sm-3">Date of birth</dt><dd class="col-sm-9">@_student.DateOfBirth.ToString("yyyy-MM-dd")</dd>
+        <dt class="col-sm-3">Gender</dt><dd class="col-sm-9">@_student.Gender</dd>
+        <dt class="col-sm-3">Academic level</dt><dd class="col-sm-9">@_student.Level</dd>
+        <dt class="col-sm-3">Department</dt><dd class="col-sm-9">@_student.Department</dd>
+        <dt class="col-sm-3">GPA</dt><dd class="col-sm-9">@_student.Gpa.ToString("0.00")</dd>
+        <dt class="col-sm-3">Enrollment date</dt><dd class="col-sm-9">@_student.EnrollmentDate.ToString("yyyy-MM-dd")</dd>
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">
+            <span class="badge @(_student.IsActive ? "text-bg-success" : "text-bg-secondary")">
+                @(_student.IsActive ? "Active" : "Inactive")
+            </span>
+        </dd>
+        <dt class="col-sm-3">Created</dt><dd class="col-sm-9">@_student.CreatedAtUtc.ToString("u")</dd>
+        <dt class="col-sm-3">Last updated</dt><dd class="col-sm-9">@(_student.UpdatedAtUtc?.ToString("u") ?? "—")</dd>
+    </dl>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private StudentDto? _student;
+    private bool _loading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _student = await Api.GetByIdAsync(Id);
+        _loading = false;
+    }
+}
